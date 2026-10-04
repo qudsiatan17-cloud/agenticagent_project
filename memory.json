@@ -1,0 +1,14 @@
+[
+  {
+    "question": "what is fastapi",
+    "answer": "**Introduction**\nFastAPI is a modern web framework designed for building high-performance APIs with Python 3.7+. It is characterized by its speed, robustness, and ease of use, making it an ideal choice for developers looking to build fast and scalable applications. In this overview, we will explore what FastAPI is, its key features, and its use cases.\n\n**Main Points**\n- **Definition**: FastAPI is a web framework that allows developers to build APIs using standard Python type hints. It supports a",
+    "score": 7,
+    "timestamp": "2026-05-16T11:19:27.875806"
+  },
+  {
+    "question": "what is langchain",
+    "answer": "**Introduction**\nLangchain is a software framework that has garnered attention in recent times, particularly in the realm of artificial intelligence and large language models. Despite initial challenges in finding a clear definition, further exploration has shed light on its purpose and applications. In this explanation, we will delve into the main points of Langchain, including its definition, architecture, and applications.\n\n**Main Points**\n- **Definition**: Langchain is a software framework d",
+    "score": 8,
+    "timestamp": "2026-05-16T11:29:41.231993"
+  }
+]

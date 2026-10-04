@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Agent</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #e4e6ea;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 14px;
+      gap: 4px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 20px;
+      border-bottom: 1px solid #e4e6ea;
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+    .logo-sub  { font-size: 11px; color: #999; margin-top: 1px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #666;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover { background: #f0f2f5; color: #1a1a1a; }
+    .nav-item.active { background: #1a1a1a; color: #fff; }
+
+    .agents-section {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid #e4e6ea;
+    }
+
+    .agents-label {
+      font-size: 10px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+
+    .agent-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #999;
+      transition: all 0.2s;
+    }
+
+    .agent-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ddd;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .agent-pill.running { color: #1a1a1a; font-weight: 500; }
+    .agent-pill.running .agent-dot { background: #1a1a1a; }
+    .agent-pill.done .agent-dot { background: #22c55e; }
+    .agent-pill.done { color: #16a34a; }
+
+    .main { margin-left: 220px; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .header {
+      padding: 18px 32px;
+      border-bottom: 1px solid #e4e6ea;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+    .header-sub   { font-size: 12px; color: #999; margin-top: 2px; }
+
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: #16a34a;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .page { display: none; padding: 28px 32px; flex: 1; }
+    .page.active { display: flex; flex-direction: column; gap: 18px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e4e6ea;
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .input-wrap { display: flex; gap: 12px; align-items: flex-end; }
+
+    textarea {
+      flex: 1;
+      background: #f7f8fa;
+      border: 1px solid #e4e6ea;
+      border-radius: 8px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      padding: 12px 14px;
+      resize: none;
+      min-height: 84px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus { border-color: #1a1a1a; background: #fff; }
+    textarea::placeholder { color: #bbb; }
+
+    .ask-btn {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      height: 84px;
+      min-width: 90px;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .ask-btn:hover:not(:disabled) { background: #333; }
+    .ask-btn:active:not(:disabled) { transform: scale(0.98); }
+    .ask-btn:disabled { background: #ccc; color: #fff; cursor: not-allowed; }
+
+    .pipeline-steps {
+      display: flex;
+      border: 1px solid #e4e6ea;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .step {
+      flex: 1;
+      padding: 9px 4px;
+      text-align: center;
+      font-size: 11px;
+      color: #bbb;
+      border-right: 1px solid #e4e6ea;
+      transition: all 0.3s;
+      font-weight: 500;
+      background: #fafafa;
+    }
+
+    .step:last-child { border-right: none; }
+    .step.running { background: #1a1a1a; color: #fff; }
+    .step.done    { background: #f0fdf4; color: #16a34a; }
+
+    .log-area {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+      color: #ccc;
+    }
+
+    .log-line { padding: 2px 0; line-height: 1.6; }
+    .log-line.orchestrator { color: #fff; }
+    .log-line.planner      { color: #e2e2e2; }
+    .log-line.researcher   { color: #22c55e; }
+    .log-line.writer       { color: #facc15; }
+    .log-line.critic       { color: #f87171; }
+    .log-line.memory       { color: #60a5fa; }
+
+    .answer-meta { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+    .meta-badge {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .meta-score  { background: #1a1a1a; color: #fff; }
+    .meta-route  { background: #f0f2f5; color: #555; border: 1px solid #e4e6ea; }
+    .meta-memory { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+    .answer-text {
+      background: #f7f8fa;
+      border: 1px solid #e4e6ea;
+      border-radius: 8px;
+      padding: 18px;
+      font-size: 14px;
+      line-height: 1.85;
+      color: #1a1a1a;
+      white-space: pre-wrap;
+    }
+
+    .memory-grid { display: flex; flex-direction: column; gap: 12px; }
+
+    .memory-card {
+      background: #fff;
+      border: 1px solid #e4e6ea;
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: box-shadow 0.2s;
+    }
+
+    .memory-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .memory-q { font-size: 14px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+    .memory-a { font-size: 13px; color: #666; line-height: 1.65; }
+
+    .memory-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f2f5;
+    }
+
+    .memory-time  { font-size: 11px; color: #bbb; }
+    .memory-score { font-size: 11px; background: #1a1a1a; color: #fff; padding: 2px 10px; border-radius: 10px; }
+
+    .empty { text-align: center; padding: 60px; color: #bbb; font-size: 14px; }
+
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid #ffffff55;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div>
+      <div class="logo-text">AI Agent</div>
+      <div class="logo-sub">Multi-Agent System</div>
+    </div>
+  </div>
+
+  <div class="nav-item active" onclick="showPage('ask', this)">
+    <span>💬</span> Ask Agent
+  </div>
+  <div class="nav-item" onclick="showPage('memory', this)">
+    <span>🧠</span> Memory
+  </div>
+
+  <div class="agents-section">
+    <div class="agents-label">Pipeline</div>
+    <div class="agent-pill" id="pill-orchestrator"><div class="agent-dot"></div>Orchestrator</div>
+    <div class="agent-pill" id="pill-planner"><div class="agent-dot"></div>Planner</div>
+    <div class="agent-pill" id="pill-researcher"><div class="agent-dot"></div>Researcher</div>
+    <div class="agent-pill" id="pill-writer"><div class="agent-dot"></div>Writer</div>
+    <div class="agent-pill" id="pill-critic"><div class="agent-dot"></div>Critic</div>
+    <div class="agent-pill" id="pill-memory"><div class="agent-dot"></div>Memory</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="header">
+    <div>
+      <div class="header-title">Multi-Agent AI System</div>
+      <div class="header-sub">Orchestrator → Planner → Researcher → Writer → Critic → Memory</div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div> Online
+    </div>
+  </div>
+
+  <div class="page active" id="page-ask">
+    <div class="card">
+      <div class="card-label">Your Question</div>
+      <div class="input-wrap">
+        <textarea id="question" placeholder="Ask anything... e.g. What is artificial intelligence?"></textarea>
+        <button class="ask-btn" id="askBtn" onclick="ask()">Ask<br>Agent</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="pipelineCard">
+      <div class="pipeline-steps">
+        <div class="step" id="step-orchestrator">Orchestrator</div>
+        <div class="step" id="step-planner">Planner</div>
+        <div class="step" id="step-researcher">Researcher</div>
+        <div class="step" id="step-writer">Writer</div>
+        <div class="step" id="step-critic">Critic</div>
+        <div class="step" id="step-memory">Memory</div>
+      </div>
+      <div class="card-label">Live Log</div>
+      <div class="log-area" id="logBox"></div>
+    </div>
+
+    <div class="card hidden" id="answerCard">
+      <div class="answer-meta">
+        <span class="meta-badge meta-score"  id="scoreLabel">Score: ?/10</span>
+        <span class="meta-badge meta-route"  id="routeLabel">Route: ?</span>
+        <span class="meta-badge meta-memory hidden" id="memLabel">From memory</span>
+      </div>
+      <div class="answer-text" id="answerBox"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-memory">
+    <div id="memoryList" class="memory-grid">
+      <div class="empty">Loading memories...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BACKEND = "http://localhost:9000";
+  const AGENTS  = ["orchestrator","planner","researcher","writer","critic","memory"];
+
+  function showPage(name, el) {
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("page-" + name).classList.add("active");
+    if (name === "memory") loadMemory();
+  }
+
+  function resetPipeline() {
+    AGENTS.forEach(a => {
+      document.getElementById("step-" + a).className = "step";
+      const pill = document.getElementById("pill-" + a);
+      if (pill) pill.className = "agent-pill";
+    });
+    document.getElementById("logBox").innerHTML = "";
+  }
+
+  function setAgentState(agent, state) {
+    const step = document.getElementById("step-" + agent);
+    const pill = document.getElementById("pill-" + agent);
+    if (step) step.className = "step " + state;
+    if (pill) pill.className = "agent-pill " + state;
+  }
+
+  function addLog(text) {
+    const box = document.getElementById("logBox");
+    const div = document.createElement("div");
+    const cls = AGENTS.find(a => text.toLowerCase().includes(a)) || "";
+    div.className = "log-line " + cls;
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function ask() {
+    const question = document.getElementById("question").value.trim();
+    if (!question) return alert("Please enter a question!");
+
+    const btn = document.getElementById("askBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>...';
+
+    document.getElementById("pipelineCard").classList.remove("hidden");
+    document.getElementById("answerCard").classList.add("hidden");
+    document.getElementById("memLabel").classList.add("hidden");
+    resetPipeline();
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i > 0) setAgentState(AGENTS[i-1], "done");
+      if (i < AGENTS.length) { setAgentState(AGENTS[i], "running"); i++; }
+    }, 2200);
+
+    try {
+      const res  = await fetch(`${BACKEND}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+      clearInterval(interval);
+      AGENTS.forEach(a => setAgentState(a, "done"));
+
+      const data = await res.json();
+      data.agent_log.forEach(addLog);
+
+      document.getElementById("scoreLabel").textContent = `Score: ${data.quality_score}/10`;
+      document.getElementById("routeLabel").textContent = `Route: ${data.route}`;
+      document.getElementById("answerBox").textContent  = data.final_answer;
+
+      const hasMemory = data.agent_log.some(l => l.includes("memory match") || l.includes("from memory"));
+      if (hasMemory) document.getElementById("memLabel").classList.remove("hidden");
+
+      document.getElementById("answerCard").classList.remove("hidden");
+    } catch(err) {
+      clearInterval(interval);
+      alert("Cannot connect to backend!\n\nRun this first:\nuvicorn backend.main:app --reload --port 9000");
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = "Ask<br>Agent";
+  }
+
+  async function loadMemory() {
+    const list = document.getElementById("memoryList");
+    try {
+      const res  = await fetch(`${BACKEND}/memory`);
+      const data = await res.json();
+      const mems = (data.memories || []).slice().reverse();
+      if (!mems.length) {
+        list.innerHTML = '<div class="empty">No memories yet. Ask some questions first!</div>';
+        return;
+      }
+      list.innerHTML = mems.map(m => `
+        <div class="memory-card">
+          <div class="memory-q">❓ ${m.question}</div>
+          <div class="memory-a">${m.answer.substring(0,280)}...</div>
+          <div class="memory-footer">
+            <span class="memory-time">${new Date(m.timestamp).toLocaleString()}</span>
+            <span class="memory-score">Score ${m.score}/10</span>
+          </div>
+        </div>
+      `).join("");
+    } catch {
+      list.innerHTML = '<div class="empty">Backend not running. Start it first!</div>';
+    }
+  }
+
+  document.getElementById("question").addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.ctrlKey) ask();
+  });
+</script>
+</body>
+</html>
